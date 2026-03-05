@@ -27,8 +27,8 @@ Both methods preserve INT64 Unix timestamps and organize data in `year/month/day
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
-  - [Method 1: Standalone Script](#method-1-standalone-script)
-  - [Method 2: Cloud Function](#method-2-cloud-function)
+  - [Method 1: Standalone Script](#method-1-standalone-script) - `bq-historic-backfill.py`
+  - [Method 2: Cloud Function](#method-2-cloud-function) - `bq-gcs-backup-csv.py`
 - [Output Structure](#output-structure)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
@@ -239,7 +239,7 @@ GCS Bucket: gs://gcs-historic-backup
 5. Code configuration:
    - **Runtime:** Python 3.11
    - **Entry point:** `export_event_data`
-   - Paste `main_cloudfunction_fixed.py` into `main.py`
+   - Paste `bq-gcs-backup-csv.py` into `main.py`
    - Paste requirements into `requirements.txt`:
      ```
      google-cloud-bigquery==3.11.4
@@ -514,11 +514,6 @@ TABLE_CONFIGS = [
         'table_name': 'event_data_packet',
         'timestamp_column': 'generated_at',
         'enabled': True
-    },
-    {
-        'table_name': 'sensor_readings',
-        'timestamp_column': 'timestamp',
-        'enabled': False  # Skip this table
     }
 ]
 ```
@@ -568,96 +563,17 @@ bigquery-gcs-export/
     └── EXAMPLES.md
 ```
 
----
-
-## Incremental Export vs Full Export
-
-This solution provides **full historical export**. For incremental/live data streaming, consider:
-
-1. **BigQuery Data Transfer Service** - Scheduled exports
-2. **Cloud Dataflow** - Real-time streaming
-3. **Custom incremental script** - Track last export timestamp
-
-See [docs/INCREMENTAL_EXPORT.md](docs/INCREMENTAL_EXPORT.md) for incremental backup approach.
-
----
 
 ## Scheduling Automated Exports
 
 ### Using Cloud Scheduler (for Cloud Functions)
 
 ```bash
-# Create Cloud Scheduler job (runs weekly on Sunday at 2 AM)
+# Create Cloud Scheduler job (runs daily at 6 AM)
 gcloud scheduler jobs create http bigquery-weekly-export \
-  --schedule="0 2 * * 0" \
+  --schedule="0 6 * * *" \
   --uri="https://REGION-PROJECT.cloudfunctions.net/export-event-data" \
   --http-method=POST \
   --location=REGION
 ```
 
-### Using Cron (for Standalone Script)
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add entry (runs daily at 2 AM)
-0 2 * * * /usr/bin/python3 /path/to/standalone_export.py >> /var/log/bq-export.log 2>&1
-```
-
----
-
-## Contributing
-
-Contributions are welcome! Please follow these guidelines:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Code Style
-
-- Follow PEP 8 guidelines
-- Add docstrings to all functions
-- Include error handling
-- Update README for new features
-
----
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## Acknowledgments
-
-- Google Cloud BigQuery and Cloud Storage documentation
-- Cloud Functions best practices from Google Cloud
-
----
-
-## Support
-
-For issues, questions, or suggestions:
-
-- Open an issue: [GitHub Issues](https://github.com/yourusername/bigquery-gcs-export/issues)
-- Contact: your-email@example.com
-
----
-
-## Changelog
-
-### v1.0.0 (2026-02-24)
-- Initial release
-- Support for single table export
-- Unix timestamp preservation
-- Date-based folder organization
-- Cloud Function deployment support
-- Standalone script support
-
----
-
-**Made with ❤️ for data engineers**
