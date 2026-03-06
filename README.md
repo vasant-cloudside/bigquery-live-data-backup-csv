@@ -31,8 +31,6 @@ Both methods preserve INT64 Unix timestamps and organize data in `year/month/day
   - [Method 2: Cloud Function](#method-2-cloud-function) - `bq-gcs-backup-csv.py`
 - [Output Structure](#output-structure)
 - [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
